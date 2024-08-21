@@ -23,6 +23,7 @@ import com.lyy.myapp.ui.theme.MyAppTheme
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -31,13 +32,12 @@ class MainActivity : ComponentActivity() {
 
     private val client = OkHttpClient() // OkHttpClient 实例，用于发送网络请求
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()//启用全屏模式
+        enableEdgeToEdge() // 启用全屏模式
         setContent {
             MyAppTheme {
-                //设置应用主题和内容
+                // 设置应用主题和内容
                 MyAppScreen()
             }
         }
@@ -131,18 +131,34 @@ class MainActivity : ComponentActivity() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 // 处理网络请求失败的情况
-                onError("Network error: ${e.message}") // 调用错误回调
+                runOnUiThread {
+                    onError("Network error: ${e.message}") // 调用错误回调
+                }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     response.body?.string()?.let { responseBody ->
-                        println("Response body: $responseBody") // 打印响应体
-                        val jsonResponse = JSONObject(responseBody)
-                        val user = jsonResponse.getString("nickname") // 从响应中提取用户名
-                        // 更新 UI 必须在主线程上进行
-                        runOnUiThread {
-                            onLoginSuccess(user) // 调用成功回调
+                        try {
+                            val jsonResponse = JSONObject(responseBody)
+                            if (jsonResponse.getBoolean("success")) {
+                                // 登录成功
+                                val nickname = jsonResponse.optString("nickname", "Unknown")
+                                runOnUiThread {
+                                    onLoginSuccess(nickname)
+                                }
+                            } else {
+                                // 登录失败
+                                val message = jsonResponse.optString("message", "Unknown error")
+                                runOnUiThread {
+                                    onError(message)
+                                }
+                            }
+                        } catch (e: JSONException) {
+                            // 解析 JSON 出错
+                            runOnUiThread {
+                                onError("Parsing error: ${e.message}")
+                            }
                         }
                     }
                 } else {
@@ -153,7 +169,6 @@ class MainActivity : ComponentActivity() {
             }
         })
     }
-
 
     @Composable
     fun Greeting(name: String) {
