@@ -1,164 +1,69 @@
 package com.lyy.myapp
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-//import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.lyy.myapp.ui.navigation.MyAppNavHost
+import com.lyy.myapp.ui.navigation.BottomNavigationBar
 import com.lyy.myapp.ui.theme.MyAppTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.platform.LocalContext
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.VisualTransformation
-import com.lyy.myapp.network.NetworkClient
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-
-
+/**
+ * MainActivity 是应用程序的入口点。
+ * 负责设置 Compose 的内容视图。
+ */
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // 使用主题包装内容
             MyAppTheme {
-                // 设置应用的主界面
-                MyAppScreen()
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    // 启动主应用程序
+                    MyApp()
+                }
             }
         }
     }
+}
 
-    @Composable
-    fun MyAppScreen() {
-        // 控制登录对话框的显示状态
-        var showLoginDialog by remember { mutableStateOf(true) }
-        // 保存用户名
-        var username by remember { mutableStateOf("") }
+/**
+ * MyApp 组件设置应用的整体布局。
+ * 使用 Scaffold 布局组件来添加底部导航栏。
+ */
+@Composable
+fun MyApp() {
+    // 创建 NavController 实例来处理应用导航
+    val navController = rememberNavController()
 
-        // 根据状态显示登录对话框或问候语
-        if (showLoginDialog) {
-            LoginDialog(onLoginSuccess = { user ->
-                username = user
-                showLoginDialog = false
-            })
-        } else {
-            Greeting(username)
-        }
-    }
-
-    @Composable
-    fun LoginDialog(onLoginSuccess: (String) -> Unit) {
-        // 登录对话框中的状态
-        var username by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-        var isLoading by remember { mutableStateOf(false) }
-        var errorMessage by remember { mutableStateOf<String?>(null) }
-
-        AlertDialog(
-            onDismissRequest = { /* 不处理对话框外点击事件 */ },
-            title = { Text("登录") },
-            text = {
-                Column {
-                    // 账号输入字段
-                    InputField(value = username, onValueChange = { username = it }, label = "账号")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // 密码输入字段
-                    InputField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = "密码",
-                        visualTransformation = PasswordVisualTransformation()
-                    )
-                    // 显示错误信息
-                    errorMessage?.let {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = it, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    isLoading = true
-                    // 模拟网络登录操作
-                    NetworkClient.login(username, password) { result ->
-                        isLoading = false
-                        result.onSuccess { user ->
-                            onLoginSuccess(user)
-                        }.onFailure { error ->
-                            errorMessage = error.message
-                        }
-                    }
-                }) {
-                    // 根据加载状态显示不同内容
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("登录")
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { finish() }) {
-                    Text("取消")
-                }
-            }
+    // 使用 Scaffold 布局来包含底部导航栏
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) } // 添加底部导航栏
+    ) { innerPadding ->
+        // 将导航主机（NavHost）放置在 Scaffold 的主体部分，并传递内边距
+        MyAppNavHost(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding) // 确保内容不被底部导航栏遮挡
         )
     }
+}
 
-    @Composable
-    fun InputField(
-        value: String,
-        onValueChange: (String) -> Unit,
-        label: String,
-        visualTransformation: VisualTransformation = VisualTransformation.None
-    ) {
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label) },
-            visualTransformation = visualTransformation
-        )
-    }
-
-    @Composable
-    fun Greeting(name: String) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.primary)
-                    .padding(vertical = 16.dp) // 垂直居中文本
-            ) {
-                Text(
-                    text = "My APP @Mask-lyy",
-                    color = Color.White, // 在背景色上使用白色文本
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-            Text(
-                text = "你好$name!",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 16.dp)
-            )
-        }
-    }
-
-    @Preview(showBackground = true)
-    @Composable
-    fun GreetingPreview() {
-        MyAppTheme {
-            Greeting("Android")
-        }
+/**
+ * DefaultPreview 用于在 Android Studio 中预览 MyApp 组件。
+ */
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    MyAppTheme {
+        // 显示 MyApp 组件的预览
+        MyApp()
     }
 }
