@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.lyy.myapp"
-        minSdk = 29
+        minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 1
@@ -59,9 +59,6 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.ui)
-    implementation(libs.ui.tooling.preview)
-    debugImplementation(libs.ui.tooling)
     implementation(libs.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.core)
@@ -72,5 +69,6 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.ui.test.manifest)
+    implementation(libs.accompanist.navigation.animation)
 }

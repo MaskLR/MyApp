@@ -1,12 +1,18 @@
-package com.lyy.myapp.network
+package com.lyy.myapp.data.network
 
-import okhttp3.*
+
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 import android.content.Context
 import android.content.SharedPreferences
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+
 
 /**
  * NetworkClient 是一个用于处理网络请求的对象，负责用户的登录和注册操作。
@@ -33,7 +39,7 @@ object NetworkClient {
      * @param callback 登录结果回调，传入登录是否成功、错误信息（如果有）和服务器返回的昵称（如果有）
      */
     fun login(username: String, password: String, callback: (Boolean, String?, String?) -> Unit) {
-        val url = "http://mask.ddns.net:8888/api/loginUser.php" // 登录请求的 URL
+        val url = "http://mask.ddns.net:808/api/loginUser.php" // 登录请求的 URL
 
         // 构建 JSON 请求体
         val jsonObject = JSONObject().apply {
@@ -87,7 +93,7 @@ object NetworkClient {
      * @param callback 注册结果回调，传入注册是否成功和错误信息（如果有）
      */
     fun register(username: String, password: String, nickname: String, callback: (Boolean, String?) -> Unit) {
-        val url = "http://mask.ddns.net:8888/api/registerUser.php" // 注册请求的 URL
+        val url = "http://mask.ddns.net:808/api/registerUser.php" // 注册请求的 URL
 
         // 构建 JSON 请求体
         val jsonObject = JSONObject().apply {
