@@ -1,0 +1,44 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main  # 触发构建的分支
+  pull_request:
+    branches:
+      - main  # 拉取请求时触发构建
+
+jobs:
+  build:
+    name: Build Android App
+    runs-on: ubuntu-latest  # 选择 Ubuntu 作为构建环境
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # 检出代码
+
+    - name: Grant execution permission for gradlew
+      run: chmod +x ./gradlew  # 给 gradlew 脚本赋予执行权限
+
+    - name: Setup JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'  # 使用 Zulu OpenJDK（你也可以选择 AdoptOpenJDK）
+        java-version: '11'  # 推荐使用 JDK 11 进行 Android 构建
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 33  # 设置 API level 为 33
+        build-tools: 33.0.2  # 设置构建工具版本
+
+    - name: Build APK
+      run: ./gradlew assembleDebug assembleRelease  # 同时构建 Debug 和 Release APK
+
+    - name: Upload APKs
+      uses: actions/upload-artifact@v3
+      with:
+        name: MyApp-APKs
+        path: |
+          app/build/outputs/apk/debug/*.apk  # 上传 debug 版本的 APK
+          app/build/outputs/apk/release/*.apk  # 上传 release 版本的 APK
