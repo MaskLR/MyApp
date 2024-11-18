@@ -30,11 +30,25 @@ jobs:
         api-level: 33
         build-tools: 33.0.2
 
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/caches
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/*.kts') }}
+        restore-keys: |
+          gradle-${{ runner.os }}-
+
+    - name: Run Lint
+      run: ./gradlew lint
+
+    - name: Run Unit Tests
+      run: ./gradlew test
+
     - name: Build APK
-      run: ./gradlew assembleDebug  # 这里也可以替换为 assembleRelease
+      run: ./gradlew assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
         name: MyApp-APK
-        path: app/build/outputs/apk/debug/*.apk这是我现在的android-build.yml
+        path: app/build/outputs/apk/debug/*.apk
