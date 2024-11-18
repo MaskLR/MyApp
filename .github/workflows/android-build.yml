@@ -3,43 +3,38 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # 触发构建的分支
+      - main
   pull_request:
-    branches:
-      - main  # 拉取请求时触发构建
 
 jobs:
   build:
     name: Build Android App
-    runs-on: ubuntu-latest  # 使用 Ubuntu 环境
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4  # 升级到最新版本支持 Node.js 20
+      uses: actions/checkout@v3
 
     - name: Grant execution permission for gradlew
-      run: chmod +x ./gradlew  # 为 gradlew 文件添加执行权限
+      run: chmod +x ./gradlew
 
     - name: Setup JDK
-      uses: actions/setup-java@v4  # 升级到支持 Node.js 20 的版本
+      uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
-        java-version: '11'  # 使用 JDK 11
+        java-version: '17'
 
-    - name: Install Android SDK and Build Tools
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y lib32stdc++6 lib32z1
-        yes | sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"  # 安装 SDK 和 Build Tools
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 33
+        build-tools: 33.0.2
 
     - name: Build APK
-      run: ./gradlew assembleDebug assembleRelease  # 同时构建 Debug 和 Release APK
+      run: ./gradlew assembleDebug  # 这里也可以替换为 assembleRelease
 
-    - name: Upload APKs
+    - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
-        name: MyApp-APKs
-        path: |
-          app/build/outputs/apk/debug/*.apk  # 上传 debug 版本的 APK
-          app/build/outputs/apk/release/*.apk  # 上传 release 版本的 APK
+        name: MyApp-APK
+        path: app/build/outputs/apk/debug/*.apk这是我现在的android-build.yml
