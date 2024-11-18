@@ -11,26 +11,27 @@ on:
 jobs:
   build:
     name: Build Android App
-    runs-on: ubuntu-latest  # 选择 Ubuntu 作为构建环境
+    runs-on: ubuntu-latest  # 使用 Ubuntu 环境
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4  # 升级到支持 Node.js 20 的版本
+      uses: actions/checkout@v4  # 升级到最新版本支持 Node.js 20
 
     - name: Grant execution permission for gradlew
-      run: chmod +x ./gradlew  # 给 gradlew 脚本赋予执行权限
+      run: chmod +x ./gradlew  # 为 gradlew 文件添加执行权限
 
     - name: Setup JDK
       uses: actions/setup-java@v4  # 升级到支持 Node.js 20 的版本
       with:
         distribution: 'zulu'
-        java-version: '11'  # 推荐使用 JDK 11 进行 Android 构建
+        java-version: '11'  # 使用 JDK 11
 
-    - name: Setup Android SDK
-      uses: reactivecircus/android-emulator-runner@v2  # 替换过时的 Android SDK 配置
-      with:
-        api-level: 33
-        build-tools: "33.0.2"
+    - name: Install Android SDK and Build Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lib32stdc++6 lib32z1
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"  # 安装 SDK 和 Build Tools
 
     - name: Build APK
       run: ./gradlew assembleDebug assembleRelease  # 同时构建 Debug 和 Release APK
