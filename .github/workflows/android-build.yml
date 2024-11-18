@@ -1,0 +1,56 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    name: Build Android App
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Grant execution permission for gradlew
+      run: chmod +x ./gradlew
+
+    - name: Setup JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Install Android SDK
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openjdk-17
+        sudo mkdir -p /usr/lib/android-sdk
+        sudo chmod 777 /usr/lib/android-sdk
+        curl -s "https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip" -o android-sdk.zip
+        unzip android-sdk.zip -d /usr/lib/android-sdk
+        rm android-sdk.zip
+        export ANDROID_HOME=/usr/lib/android-sdk
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        yes | sdkmanager --licenses
+        sdkmanager "platforms;android-33" "build-tools;33.0.2"
+
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/caches
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/*.kts') }}
+        restore-keys: |
+          gradle-${{ runner.os }}-
+
+    - name: Build APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: MyApp-APK
+        path: app/build/outputs/apk/debug/*.apk
