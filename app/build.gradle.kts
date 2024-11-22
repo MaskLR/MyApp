@@ -20,6 +20,16 @@ android {
             useSupportLibrary = true
         }
     }
+    //github自动打包
+    signingConfigs {
+        // 使用 GitHub Secrets 传递签名信息
+        create("release") {
+            storeFile = file(project.findProperty("KEYSTORE_FILE") ?: "/default/path/to/keystore.jks")
+            storePassword = project.findProperty("KEYSTORE_PASSWORD") as String? ?: ""
+            keyAlias = project.findProperty("KEY_ALIAS") as String? ?: ""
+            keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: ""
+        }
+    }
 
     buildTypes {
         release {
@@ -28,6 +38,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")// 启用签名配置
         }
     }
     compileOptions {
