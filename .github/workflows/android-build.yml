@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      OUTPUT_DEBUG: app/build/outputs/apk/debug/*.apk  # Debug APK 输出路径
-      OUTPUT_RELEASE: app/build/outputs/apk/release/*.apk  # Release APK 输出路径
+      OUTPUT_DEBUG: app/build/outputs/apk/debug/app-debug.apk  # Debug APK 输出路径
+      OUTPUT_RELEASE: app/build/outputs/apk/release/app-release.apk  # Release APK 输出路径
 
     strategy:
       matrix:
@@ -94,18 +94,22 @@ jobs:
           draft: false
           prerelease: false
 
-      # 3. 上传 Debug APK 到 Release
+      # 3. 打印 Debug APK 文件路径（调试用）
+      - name: Print Debug APK Path
+        run: echo "Debug APK Path: ${{ env.OUTPUT_DEBUG }}"
+
+      # 4. 上传 Debug APK 到 Release
       - name: Upload Debug APK to Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}  # 确保引用 create_release 步骤的 output
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.OUTPUT_DEBUG }}
           asset_name: MyApp-Debug.apk
           asset_content_type: application/vnd.android.package-archive
 
-      # 4. 上传 Release APK 到 Release
+      # 5. 上传 Release APK 到 Release
       - name: Upload Release APK to Release
         uses: actions/upload-release-asset@v1
         env:
