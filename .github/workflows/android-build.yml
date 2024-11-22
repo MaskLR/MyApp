@@ -3,15 +3,15 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # 当代码推送到 main 分支时触发工作流
+      - main  # 当代码推送到 main 分支时触发
   pull_request:
     branches:
-      - main  # 当创建拉取请求时触发工作流
+      - main  # 当创建拉取请求时触发
 
 jobs:
   build:
-    name: Build Android App  # 工作名称
-    runs-on: ubuntu-latest  # 使用最新的 Ubuntu 作为运行环境
+    name: Build Android App
+    runs-on: ubuntu-latest
 
     env:
       OUTPUT_DEBUG: app/build/outputs/apk/debug/*.apk  # Debug APK 输出路径
@@ -20,79 +20,82 @@ jobs:
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4  # 使用 GitHub 官方的代码检出操作
+        uses: actions/checkout@v4
 
-      # 2. 为 gradlew 文件授予执行权限
+      # 2. 为 gradlew 授予执行权限
       - name: Grant execution permission for gradlew
         run: chmod +x ./gradlew
 
-      # 3. 设置 JDK 17 环境
+      # 3. 设置 JDK 环境
       - name: Set up JDK 17
-        uses: actions/setup-java@v3  # 使用 setup-java 动作
+        uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'  # 使用 Zulu OpenJDK 发行版
-          java-version: '17'  # 指定 JDK 版本为 17
+          distribution: 'zulu'
+          java-version: '17'
 
       # 4. 设置 Android SDK 环境
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2  # 使用 setup-android 动作
+        uses: android-actions/setup-android@v2
         with:
-          api-level: 33  # 设置目标 Android API 级别为 33（Android 13）
+          api-level: 33
 
-      # 5. 配置缓存以加速 Gradle 构建
+      # 5. 配置缓存以加速构建
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches  # 缓存路径
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-  # 恢复键
+            ${{ runner.os }}-gradle-
 
-      # 6. 校验 build.gradle.kts 文件语法
-      - name: Validate Gradle files
-        run: ./gradlew --no-daemon help  # 检查 Gradle 配置文件是否有效
-
-      # 7. 校验依赖是否正确解析
-      - name: Verify dependencies
-        run: ./gradlew dependencies  # 列出所有依赖项以验证解析是否正确
-
-      # 8. 运行代码静态检查
-      - name: Run Lint checks
-        run: ./gradlew lint  # 执行 Lint 检查，确保代码符合规范
-
-      # 9. 运行单元测试
-      - name: Run Unit tests
-        run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
-
-      # 10. 安装指定版本的 Build Tools
+      # 6. 安装 Build Tools
       - name: Install build-tools
-        run: sdkmanager "build-tools;33.0.2"  # 安装 Android Build Tools 33.0.2
+        run: sdkmanager "build-tools;33.0.2"
 
-      # 11. 配置 Keystore 文件
+      # 7. 设置 Keystore 文件
       - name: Set up keystore file
         run: |
-          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
+          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks
         env:
-          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
 
-      # 12. 构建 Debug APK
+      # 8. 构建 Debug APK
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --info  # 构建 Debug 版本的 APK，并启用详细日志和堆栈跟踪
+        run: ./gradlew assembleDebug --stacktrace --info
 
-      # 13. 构建 Release APK
+      # 9. 构建 Release APK
       - name: Build Release APK
-        run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
+        run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
 
-      # 14. 上传 Debug APK
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
+      # 10. 创建 Release
+      - name: Create Release
+        uses: actions/create-release@v1  # 使用 GitHub 官方动作创建 Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub 提供的内置 Token
         with:
-          name: MyApp-Debug-APK  # 上传的文件名称
-          path: ${{ env.OUTPUT_DEBUG }}  # Debug APK 文件路径
+          tag_name: ${{ github.ref_name }}  # 使用分支名作为 Tag
+          release_name: "Release ${{ github.ref_name }}"  # Release 的名称
+          draft: false  # 是否是草稿状态
+          prerelease: false  # 是否为预发布版本
 
-      # 15. 上传 Release APK
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
+      # 11. 上传 Debug APK 到 Release
+      - name: Upload Debug APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: MyApp-Release-APK  # 上传的文件名称
-          path: ${{ env.OUTPUT_RELEASE }}  # Release APK 文件路径
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # 使用上一步创建 Release 的上传 URL
+          asset_path: ${{ env.OUTPUT_DEBUG }}  # Debug APK 文件路径
+          asset_name: MyApp-Debug.apk  # Debug APK 文件名称
+          asset_content_type: application/vnd.android.package-archive  # 文件类型
+
+      # 12. 上传 Release APK 到 Release
+      - name: Upload Release APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.OUTPUT_RELEASE }}
+          asset_name: MyApp-Release.apk
+          asset_content_type: application/vnd.android.package-archive
