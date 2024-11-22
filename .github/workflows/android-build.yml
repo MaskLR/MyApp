@@ -65,7 +65,7 @@ jobs:
 
       # 10. 安装指定版本的 Build Tools
       - name: Install build-tools
-        run: sdkmanager "build-tools;35.0.2"  # 安装 Android Build Tools 35.0.2
+        run: sdkmanager "build-tools;33.0.2"  # 安装 Android Build Tools 33.0.2
 
       # 11. 配置 Keystore 文件
       - name: Set up keystore file
