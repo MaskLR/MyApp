@@ -37,7 +37,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3  # 使用 setup-android 动作
         with:
-          api-level: 35  # 设置目标 Android API 级别为 35（Android 15）
+          packages: |
+            build-tools;33.0.2  # 安装指定版本的 Build Tools
+            platforms;android-35  # 设置目标 Android API 级别为 35（Android 15）
 
       # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
@@ -47,6 +49,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键
           restore-keys: |
             ${{ runner.os }}-gradle-  # 恢复键
+
       # 6. 校验 build.gradle.kts 文件语法
       - name: Validate Gradle files
         run: ./gradlew --no-daemon help  # 检查 Gradle 配置文件是否有效
@@ -65,7 +68,7 @@ jobs:
 
       # 10. 安装指定版本的 Build Tools
       - name: Install build-tools
-        run: sdkmanager "build-tools;33.0.2"  # 安装 Android Build Tools 33.0.2
+        run: sdkmanager "build-tools;35.0.2"  # 安装 Android Build Tools 33.0.2
 
       # 11. 配置 Keystore 文件
       - name: Set up keystore file
