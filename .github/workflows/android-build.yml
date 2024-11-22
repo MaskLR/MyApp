@@ -24,33 +24,30 @@ jobs:
 
       # 2. 为 gradlew 文件授予执行权限
       - name: Grant execution permission for gradlew
-        run: chmod +x ./gradlew  # 为 gradlew 文件添加可执行权限
+        run: chmod +x ./gradlew
 
       # 3. 设置 JDK 17 环境
       - name: Set up JDK 17
-        uses: actions/setup-java@v4  # 配置 Java 环境
+        uses: actions/setup-java@v4  # 使用 setup-java 动作
         with:
           distribution: 'zulu'  # 使用 Zulu OpenJDK 发行版
           java-version: '17'  # 指定 JDK 版本为 17
 
       # 4. 设置 Android SDK 环境
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3  # 配置 Android SDK 环境
+        uses: android-actions/setup-android@v3  # 使用 setup-android 动作
         with:
-          packages: |  # 指定需要安装的 SDK 组件
-            build-tools;33.0.2  # 安装 Build Tools 33.0.2
-            platforms;android-34  # 安装 Android API Level 35（对应 Android 15）
+          api-level: 35  # 设置目标 Android API 级别为 35（Android 15）
 
-      # 5. 配置 Gradle 缓存
+      # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
-        uses: actions/cache@v4  # 使用 GitHub Actions 的缓存功能
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches  # 缓存路径
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键值
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键
           restore-keys: |
-            ${{ runner.os }}-gradle-  # 恢复缓存键
-
-      # 6. 校验 Gradle 配置文件
+            ${{ runner.os }}-gradle-  # 恢复键
+      # 6. 校验 build.gradle.kts 文件语法
       - name: Validate Gradle files
         run: ./gradlew --no-daemon help  # 检查 Gradle 配置文件是否有效
 
@@ -66,29 +63,33 @@ jobs:
       - name: Run Unit tests
         run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
 
-      # 10. 配置 Keystore 文件
+      # 10. 安装指定版本的 Build Tools
+      - name: Install build-tools
+        run: sdkmanager "build-tools;33.0.2"  # 安装 Android Build Tools 33.0.2
+
+      # 11. 配置 Keystore 文件
       - name: Set up keystore file
         run: |
-          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 将 Keystore 文件从 Base64 编码解码并保存到临时路径
+          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
         env:
-          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 Keystore 文件
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
 
-      # 11. 构建 Debug APK
+      # 12. 构建 Debug APK
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace --info  # 构建 Debug 版本的 APK，并启用详细日志和堆栈跟踪
 
-      # 12. 构建 Release APK
+      # 13. 构建 Release APK
       - name: Build Release APK
         run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
-      # 13. 上传 Debug APK
+      # 14. 上传 Debug APK
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
         with:
           name: MyApp-Debug-APK  # 上传的文件名称
           path: ${{ env.OUTPUT_DEBUG }}  # Debug APK 文件路径
 
-      # 14. 上传 Release APK
+      # 15. 上传 Release APK
       - name: Upload Release APK
         uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
         with:
