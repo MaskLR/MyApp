@@ -72,8 +72,6 @@ jobs:
             ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }} --stacktrace --info
           fi
 
-      # 9. 上传 APK 到 Release（后续的上传步骤会在独立的工作流中执行）
-
   release:
     name: Release APK
     runs-on: ubuntu-latest
@@ -86,6 +84,7 @@ jobs:
 
       # 2. 创建 Release
       - name: Create Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -101,7 +100,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # 确保引用 create_release 步骤的 output
           asset_path: ${{ env.OUTPUT_DEBUG }}
           asset_name: MyApp-Debug.apk
           asset_content_type: application/vnd.android.package-archive
