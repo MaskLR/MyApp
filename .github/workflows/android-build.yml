@@ -28,7 +28,7 @@ jobs:
 
       # 3. 设置 JDK 17 环境
       - name: Set up JDK 17
-        uses: actions/setup-java@v3  # 使用 setup-java 动作
+        uses: actions/setup-java@v4  # 使用 setup-java 动作
         with:
           distribution: 'zulu'  # 使用 Zulu OpenJDK 发行版
           java-version: '17'  # 指定 JDK 版本为 17
