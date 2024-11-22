@@ -1,4 +1,4 @@
-name: Build APK
+name: Build and Release APK
 
 on:
   push:
@@ -17,10 +17,14 @@ jobs:
       OUTPUT_DEBUG: app/build/outputs/apk/debug/*.apk  # Debug APK 输出路径
       OUTPUT_RELEASE: app/build/outputs/apk/release/*.apk  # Release APK 输出路径
 
+    strategy:
+      matrix:
+        build-type: [debug, release]  # 支持同时构建 Debug 和 Release 版本
+
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       # 2. 为 gradlew 授予执行权限
       - name: Grant execution permission for gradlew
@@ -59,37 +63,50 @@ jobs:
         env:
           KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
 
-      # 8. 构建 Debug APK
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --info
+      # 8. 构建 APK
+      - name: Build APK
+        run: |
+          if [ "${{ matrix.build-type }}" == "debug" ]; then
+            ./gradlew assembleDebug --stacktrace --info
+          else
+            ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }} --stacktrace --info
+          fi
 
-      # 9. 构建 Release APK
-      - name: Build Release APK
-        run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+      # 9. 上传 APK 到 Release（后续的上传步骤会在独立的工作流中执行）
 
-      # 10. 创建 Release
+  release:
+    name: Release APK
+    runs-on: ubuntu-latest
+    needs: build  # 确保在构建成功后才执行上传
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 创建 Release
       - name: Create Release
-        uses: actions/create-release@v1  # 使用 GitHub 官方动作创建 Release
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub 提供的内置 Token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}  # 使用分支名作为 Tag
           release_name: "Release ${{ github.ref_name }}"  # Release 的名称
-          draft: false  # 是否是草稿状态
-          prerelease: false  # 是否为预发布版本
+          draft: false
+          prerelease: false
 
-      # 11. 上传 Debug APK 到 Release
+      # 3. 上传 Debug APK 到 Release
       - name: Upload Debug APK to Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}  # 使用上一步创建 Release 的上传 URL
-          asset_path: ${{ env.OUTPUT_DEBUG }}  # Debug APK 文件路径
-          asset_name: MyApp-Debug.apk  # Debug APK 文件名称
-          asset_content_type: application/vnd.android.package-archive  # 文件类型
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.OUTPUT_DEBUG }}
+          asset_name: MyApp-Debug.apk
+          asset_content_type: application/vnd.android.package-archive
 
-      # 12. 上传 Release APK 到 Release
+      # 4. 上传 Release APK 到 Release
       - name: Upload Release APK to Release
         uses: actions/upload-release-asset@v1
         env:
