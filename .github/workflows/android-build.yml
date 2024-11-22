@@ -16,7 +16,7 @@ jobs:
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v3  # 使用最新版本的 Checkout Action
+        uses: actions/checkout@v4  # 使用最新版本的 Checkout Action
 
       # 2. 授予 gradlew 执行权限
       - name: Grant execution permission for gradlew
@@ -31,13 +31,17 @@ jobs:
 
       # 4. 设置 Android SDK 环境
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2  # 使用最新版本的 setup-android Action
+        uses: react-native-community/setup-android@v2  # 使用最新版本的 setup-android Action
         with:
-          api-level: 33  # 设置目标 Android API 级别为 33（Android 13）
+          #api-level: 33  # 设置目标 Android API 级别为 33（Android 13）
+
+            # 不再传递 api-level 参数，或者可以使用其他合适的方式设置
+            # 在需要的地方，直接通过 sdkmanager 安装所需的 API 版本
+            run: sdkmanager "platforms;android-33" "build-tools;33.0.2"  # 安装 Android 33 和构建工具
 
       # 5. 安装指定版本的 Build Tools
-      - name: Install build-tools
-        run: sdkmanager "build-tools;33.0.2"  # 安装指定版本的 build-tools
+     # - name: Install build-tools
+       # run: sdkmanager "build-tools;33.0.2"  # 安装指定版本的 build-tools
 
       # 6. 设置 Keystore 文件
       - name: Set up keystore file
