@@ -1,16 +1,16 @@
-name: Build APK
+name: Build APK and Release
 
 on:
   push:
     branches:
       - main  # 当代码推送到 main 分支时触发
-  pull_request:  # 当创建拉取请求时也会触发
+  pull_request:
     branches:
-      - main
+      - main  # 当创建拉取请求时也会触发
 
 jobs:
   build:
-    name: Build Android App
+    name: Build Android App and Upload to Releases
     runs-on: ubuntu-latest  # 使用最新的 Ubuntu 系统运行环境
 
     steps:
@@ -54,16 +54,18 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 使用 Keystore 文件构建 Release 版本的 APK
 
-      # 9. 上传 Debug APK
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4  # 使用最新版本的 upload-artifact Action
+      # 9. 上传 Debug APK 到 GitHub Releases
+      - name: Upload Debug APK to GitHub Releases
+        uses: softprops/action-gh-release@v1
         with:
-          name: MyApp-Debug-APK  # 上传的文件名称
-          path: app/build/outputs/apk/debug/*.apk  # Debug APK 的输出路径
+          files: app/build/outputs/apk/debug/*.apk  # Debug APK 的输出路径
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用自动生成的 GitHub Token
 
-      # 10. 上传 Release APK
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4  # 使用最新版本的 upload-artifact Action
+      # 10. 上传 Release APK 到 GitHub Releases
+      - name: Upload Release APK to GitHub Releases
+        uses: softprops/action-gh-release@v1
         with:
-          name: MyApp-Release-APK  # 上传的文件名称
-          path: app/build/outputs/apk/release/*.apk  # Release APK 的输出路径
+          files: app/build/outputs/apk/release/*.apk  # Release APK 的输出路径
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用自动生成的 GitHub Token
