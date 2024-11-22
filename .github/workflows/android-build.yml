@@ -41,7 +41,7 @@ jobs:
 
       # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches  # 缓存路径
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键
