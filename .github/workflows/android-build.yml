@@ -39,7 +39,7 @@ jobs:
         with:
           packages: |  # 指定需要安装的 SDK 组件
             build-tools;33.0.2  # 安装 Build Tools 33.0.2
-            platforms;android-35  # 安装 Android API Level 35（对应 Android 15）
+            platforms;android-34  # 安装 Android API Level 35（对应 Android 15）
 
       # 5. 配置 Gradle 缓存
       - name: Cache Gradle dependencies
