@@ -37,7 +37,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2  # 使用 setup-android 动作
         with:
-          api-level: 33  # 设置目标 Android API 级别为 33（Android 13）
+          api-level: 35  # 设置目标 Android API 级别为 35（Android 15）
 
       # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
