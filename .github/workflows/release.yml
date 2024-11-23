@@ -37,13 +37,16 @@ jobs:
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches  # 缓存路径
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-  # 恢复键
+            ${{ runner.os }}-gradle-
+
       # 6. 校验 build.gradle.kts 文件语法
       - name: Validate Gradle files
-        run: ./gradlew --no-daemon help  # 检查 Gradle 配置文件是否有效
+        run: ./gradlew help  # 检查 Gradle 配置文件是否有效
 
       # 7. 校验依赖是否正确解析
       - name: Verify dependencies
@@ -57,18 +60,18 @@ jobs:
       - name: Run Unit tests
         run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
 
-      # 11. 配置 Keystore 文件
+      # 10. 配置 Keystore 文件
       - name: Set up keystore file
         run: |
           echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
         env:
           KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
 
-      # 8. 构建 Release APK
+      # 11. 构建 Release APK
       - name: Build Release APK
-        run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
+        run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
-      # 9. 创建 GitHub Release
+      # 12. 创建 GitHub Release
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -80,9 +83,9 @@ jobs:
           draft: false
           prerelease: false
 
-      # 10. 上传 Release APK
+      # 13. 上传 Release APK
       - name: Upload Release APK
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -90,3 +93,7 @@ jobs:
           asset_path: app/build/outputs/apk/release/app-release.apk
           asset_name: app-release.apk
           asset_content_type: application/vnd.android.package-archive
+
+      # 14. 清理构建文件
+      - name: Clean up build files
+        run: ./gradlew clean  # 清理构建文件，释放存储空间
