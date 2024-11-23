@@ -83,7 +83,7 @@ jobs:
 
       # 13. 使用 softprops/action-gh-release 上传 Release APK
       - name: Upload Release APK to GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/release/app-release.apk
         env:
