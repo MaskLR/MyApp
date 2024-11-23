@@ -5,13 +5,12 @@ plugins {
 
 android {
     namespace = "com.lyy.myapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.lyy.myapp"
         minSdk = 24
-        //noinspection OldTargetApi
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -82,10 +81,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.test.manifest)
     implementation(libs.accompanist.navigation.animation)
-//    implementation(libs.dagger.hilt.android)
-//    kapt(libs.hilt.android.compiler)
 }
-// Allow references to generated code
-//kapt {
-//    correctErrorTypes = true
-//}
