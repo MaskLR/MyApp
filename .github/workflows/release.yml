@@ -85,7 +85,7 @@ jobs:
 
       # 13. 上传 Release APK
       - name: Upload Release APK
-        uses: actions/upload-release-asset@v3
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
