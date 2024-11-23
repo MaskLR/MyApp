@@ -19,7 +19,7 @@ android {
             useSupportLibrary = true
         }
     }
-    //github自动打包
+    // GitHub 自动打包
     signingConfigs {
         // 使用 GitHub Secrets 传递签名信息
         create("release") {
@@ -37,7 +37,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")// 启用签名配置
+            signingConfig = signingConfigs.getByName("release") // 启用签名配置
         }
     }
     compileOptions {
@@ -51,7 +51,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
     packaging {
         resources {
@@ -73,12 +73,20 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
-    testImplementation(libs.junit)
+    implementation(libs.androidx.ui.test.manifest)
+    implementation(libs.accompanist.navigation.animation)
+
+    // 单元测试 (JUnit 5)
+    androidTestImplementation(libs.junit.jupiter) // JUnit 5 API
+    testImplementation(libs.junit.jupiter) // 使用集合依赖
+
+
+    // Android 测试
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // 调试工具
     debugImplementation(libs.androidx.ui.tooling)
-    implementation(libs.androidx.ui.test.manifest)
-    implementation(libs.accompanist.navigation.animation)
 }
