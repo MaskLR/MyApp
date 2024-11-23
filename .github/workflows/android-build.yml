@@ -3,10 +3,10 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # 当代码推送到 main 分支时触发工作流
+#      - main  # 当代码推送到 main 分支时触发工作流
   pull_request:
     branches:
-      - main  # 当创建拉取请求时触发工作流
+ #     - main  # 当创建拉取请求时触发工作流
 
 jobs:
   build:
