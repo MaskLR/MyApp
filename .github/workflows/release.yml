@@ -40,6 +40,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+            ~/.android
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
@@ -60,39 +61,33 @@ jobs:
       - name: Run Unit tests
         run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
 
-      # 10. 配置 Keystore 文件
+      # 10. 检查版本号
+      - name: Check versionCode and versionName
+        run: |
+          VERSION_CODE=$(grep versionCode ./app/build.gradle | awk '{print $2}')
+          VERSION_NAME=$(grep versionName ./app/build.gradle | awk '{print $2}')
+          echo "Version Code: $VERSION_CODE"
+          echo "Version Name: $VERSION_NAME"
+          # 可以在这里添加更多验证逻辑
+
+      # 11. 配置 Keystore 文件
       - name: Set up keystore file
         run: |
           echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
         env:
           KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
 
-      # 11. 构建 Release APK
+      # 12. 构建 Release APK
       - name: Build Release APK
         run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
-      # 12. 创建 GitHub Release
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
+      # 13. 使用 softprops/action-gh-release 上传 Release APK
+      - name: Upload Release APK to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      # 13. 上传 Release APK
-      - name: Upload Release APK
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app/build/outputs/apk/release/app-release.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
 
       # 14. 清理构建文件
       - name: Clean up build files
