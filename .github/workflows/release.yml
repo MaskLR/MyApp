@@ -26,22 +26,29 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          api-level: 34
-          build-tools: "34.0.0"
+          packages: ''
 
       # 4. 自动接受 SDK 许可证
       - name: Accept licenses
         run: yes | sdkmanager --licenses || true
 
-      # 5. 解码 Keystore 文件
+      # 5. 设置 KVM 权限（如在第一段中）
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls /dev/kvm
+
+      # 6. 解码 Keystore 文件
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > /tmp/keystore.jks
 
-      # 6. 为 gradlew 文件授予执行权限
+      # 7. 为 gradlew 文件授予执行权限
       - name: Grant execution permission for gradlew
         run: chmod +x ./gradlew
 
-      # 7. 构建 Release APK
+      # 8. 构建 Release APK
       - name: Build Release APK
         run: ./gradlew assembleRelease \
           -Pandroid.injected.signing.store.file=/tmp/keystore.jks \
@@ -49,7 +56,7 @@ jobs:
           -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
           -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
-      # 8. 创建 GitHub Release
+      # 9. 创建 GitHub Release
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -61,7 +68,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # 9. 上传 Release APK
+      # 10. 上传 Release APK
       - name: Upload Release APK
         uses: actions/upload-release-asset@v1
         env:
