@@ -30,8 +30,8 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3  # 使用 setup-android 动作
         with:
-          packages: 'build-tools;34.0.0,platforms;android-35'
-          # 设置tools版本为 34.0.0 设置目标 Android API 级别为 35（Android 15）
+          packages: 'build-tools,platforms'
+          # 设置tools版本为最新版 设置目标 Android API 级别为 最新版
 
       # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
