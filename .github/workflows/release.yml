@@ -13,48 +13,64 @@ jobs:
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # 使用 GitHub 官方的代码检出操作
 
-      # 2. 设置 JDK 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: 17
-
-      # 3. 设置 Android SDK
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: ''
-
-      # 4. 自动接受 SDK 许可证
-      - name: Accept licenses
-        run: yes | sdkmanager --licenses || true
-
-      # 5. 设置 KVM 权限（如在第一段中）
-      - name: Enable KVM group perms
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          ls /dev/kvm
-
-      # 6. 解码 Keystore 文件
-      - name: Decode Keystore
-        run: echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > /tmp/keystore.jks
-
-      # 7. 为 gradlew 文件授予执行权限
+      # 2. 为 gradlew 文件授予执行权限
       - name: Grant execution permission for gradlew
         run: chmod +x ./gradlew
 
+      # 3. 设置 JDK 17 环境
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4  # 使用 setup-java 动作
+        with:
+          distribution: 'zulu'  # 使用 Zulu OpenJDK 发行版
+          java-version: '17'  # 指定 JDK 版本为 17
+
+      # 4. 设置 Android SDK 环境
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3  # 使用 setup-android 动作
+        with:
+          packages: 'build-tools;35.0.0,platforms;android-34'
+        #  api-level: 35  # 设置目标 Android API 级别为 35（Android 15）
+
+      # 5. 配置缓存以加速 Gradle 构建
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches  # 缓存路径
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存键
+          restore-keys: |
+            ${{ runner.os }}-gradle-  # 恢复键
+      # 6. 校验 build.gradle.kts 文件语法
+      - name: Validate Gradle files
+        run: ./gradlew --no-daemon help  # 检查 Gradle 配置文件是否有效
+
+      # 7. 校验依赖是否正确解析
+      - name: Verify dependencies
+        run: ./gradlew dependencies  # 列出所有依赖项以验证解析是否正确
+
+      # 8. 运行代码静态检查
+      - name: Run Lint checks
+        run: ./gradlew lint  # 执行 Lint 检查，确保代码符合规范
+
+      # 9. 运行单元测试
+      - name: Run Unit tests
+        run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
+
+      # 10. 安装指定版本的 Build Tools
+      - name: Install build-tools
+        run: sdkmanager "build-tools;35.0.0"  # 安装 Android Build Tools 34.0.0
+
+      # 11. 配置 Keystore 文件
+      - name: Set up keystore file
+        run: |
+          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
+
       # 8. 构建 Release APK
       - name: Build Release APK
-        run: ./gradlew assembleRelease \
-          -Pandroid.injected.signing.store.file=/tmp/keystore.jks \
-          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
-          -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-          -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
       # 9. 创建 GitHub Release
       - name: Create GitHub Release
