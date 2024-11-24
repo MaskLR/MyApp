@@ -3,21 +3,21 @@ name: Build and Release APK
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # 监听标签推送，版本号以 'v' 开头
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
+    runs-on: ubuntu-latest  # 使用 Ubuntu 最新版本的虚拟机
+    timeout-minutes: 120  # 设置构建超时为 120 分钟
 
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4  # 使用 GitHub 官方的代码检出操作
+        uses: actions/checkout@v4  # 使用 GitHub 官方的代码检出动作
 
       # 2. 为 gradlew 文件授予执行权限
       - name: Grant execution permission for gradlew
-        run: chmod +x ./gradlew
+        run: chmod +x ./gradlew  # 授予 gradlew 文件执行权限
 
       # 3. 设置 JDK 17 环境
       - name: Set up JDK 17
@@ -30,18 +30,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3  # 使用 setup-android 动作
         with:
-          cmdline-tools-version: "latest"
-          # 设置tools版本为最新版 设置目标 Android API 级别为 最新版
+          cmdline-tools-version: "latest"  # 设置工具版本为最新
 
       # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v4  # 使用 GitHub Actions 的缓存插件加速构建
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
             ~/.android
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}  # 缓存 key 通过 Gradle 文件生成
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -68,7 +67,7 @@ jobs:
           VERSION_NAME=$(grep versionName ./app/build.gradle | awk '{print $2}')
           echo "Version Code: $VERSION_CODE"
           echo "Version Name: $VERSION_NAME"
-          # 可以在这里添加更多验证逻辑
+          # 可根据需要添加更多验证逻辑
 
       # 11. 配置 Keystore 文件
       - name: Set up keystore file
@@ -81,13 +80,17 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
-      # 13. 使用 softprops/action-gh-release 上传 Release APK
-      - name: Upload Release APK to GitHub Release
-        uses: softprops/action-gh-release@v2
+      # 13. 查找并上传所有架构版本的 APK
+      - name: Find and upload APKs to GitHub Release
+        run: |
+          APK_FILES=$(find app/build/outputs/apk/release/ -name "*.apk")  # 查找所有 APK 文件
+          echo "$APK_FILES" > apk_list.txt  # 保存文件路径列表
+      - name: Upload APKs to GitHub Release
+        uses: softprops/action-gh-release@v2  # 使用 softprops/action-gh-release 插件上传 APK 文件
         with:
-          files: app/build/outputs/apk/release/app-release.apk
+          files: $(cat apk_list.txt)  # 动态读取文件列表并上传
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token 进行身份验证
 
       # 14. 清理构建文件
       - name: Clean up build files
