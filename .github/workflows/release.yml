@@ -80,9 +80,9 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
-      # 8. 查找所有生成的 APK 文件
+      # 13. 查找所有生成的 APK 文件
       - name: 查找所有生成的 APK 文件
-        id: find-apks  # 设置步骤 ID，供后续步骤引用
+        id: find-apks
         run: |
           APK_FILES=$(find . -path "*/outputs/apk/*.apk" -type f)
           echo "Found APKs: $APK_FILES"
@@ -90,29 +90,30 @@ jobs:
             echo "未找到 APK 文件！"
             exit 1
           fi
-          echo -e "files=$(echo \"$APK_FILES\")" >> $GITHUB_ENV
+          # 将路径用空格分隔并保存到环境变量
+          echo "files=$(echo $APK_FILES | tr '\n' ' ')" >> $GITHUB_ENV
 
+      # 14. 验证生成的 APK 文件是否存在
       - name: 验证生成的 APK 文件是否存在
         run: |
           echo "Validating APK file paths:"
           for FILE in ${{ env.files }}; do
-            ABSOLUTE_PATH=$(realpath "$FILE")
-            if [ -f "$ABSOLUTE_PATH" ]; then
-              echo "Found: $ABSOLUTE_PATH"
+            # 逐个检查每个文件路径
+            if [ -f "$FILE" ]; then
+              echo "Found: $FILE"
             else
-              echo "Not Found: $ABSOLUTE_PATH"
+              echo "Not Found: $FILE"
             fi
           done
 
-      # 13. 使用 softprops/action-gh-release 上传 Release APK 上传 APK 文件到 GitHub Release
+      # 15. 使用 softprops/action-gh-release 上传 Release APK 上传 APK 文件到 GitHub Release
       - name: 上传 APK 文件到 GitHub Release
         uses: softprops/action-gh-release@v2  # 使用 GitHub Actions 插件上传文件到 Release
         with:
-          files: |
-            ${{ env.files }}  # 引用查找到的 APK 文件路径
+          files: ${{ env.files }}  # 引用查找到的 APK 文件路径
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token 进行身份验证
 
-      # 14. 清理构建文件
+      # 16. 清理构建文件
       - name: Clean up build files
         run: ./gradlew clean  # 清理构建文件，释放存储空间
