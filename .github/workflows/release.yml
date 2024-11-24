@@ -75,7 +75,7 @@ jobs:
       - name: 查找所有生成的 APK 文件
         id: find-apks
         run: |
-          APK_FILES=$(find . -path "*/outputs/apk/*.apk" -type f)
+          APK_FILES=$(find "$PWD/app/build/outputs/apk/release" -name "*.apk" -type f)
           echo "Found APKs: $APK_FILES"
           if [ -z "$APK_FILES" ]; then
             echo "未找到 APK 文件！"
@@ -92,6 +92,7 @@ jobs:
               echo "Found: $FILE"
             else
               echo "Not Found: $FILE"
+              exit 1
             fi
           done
 
