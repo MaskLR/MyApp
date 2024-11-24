@@ -13,7 +13,7 @@ jobs:
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # 使用 GitHub 官方的代码检出操作
 
       # 2. 为 gradlew 文件授予执行权限
       - name: Grant execution permission for gradlew
@@ -21,16 +21,17 @@ jobs:
 
       # 3. 设置 JDK 17 环境
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4  # 使用 setup-java 动作
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: 'zulu'  # 使用 Zulu OpenJDK 发行版
+          java-version: '17'  # 指定 JDK 版本为 17
 
       # 4. 设置 Android SDK 环境
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v3  # 使用 setup-android 动作
         with:
           cmdline-tools-version: "latest"
+          # 设置tools版本为最新版 设置目标 Android API 级别为 最新版
 
       # 5. 配置缓存以加速 Gradle 构建
       - name: Cache Gradle dependencies
@@ -43,55 +44,49 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
       # 6. 校验 build.gradle.kts 文件语法
       - name: Validate Gradle files
-        run: ./gradlew help
+        run: ./gradlew help  # 检查 Gradle 配置文件是否有效
 
       # 7. 校验依赖是否正确解析
       - name: Verify dependencies
-        run: ./gradlew dependencies
+        run: ./gradlew dependencies  # 列出所有依赖项以验证解析是否正确
 
       # 8. 运行代码静态检查
       - name: Run Lint checks
-        run: ./gradlew lint
+        run: ./gradlew lint  # 执行 Lint 检查，确保代码符合规范
 
       # 9. 运行单元测试
       - name: Run Unit tests
-        run: ./gradlew test
+        run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
 
-      # 10. 配置 Keystore 文件
+      # 10. 检查版本号
+      - name: Check versionCode and versionName
+        run: |
+          VERSION_CODE=$(grep versionCode ./app/build.gradle | awk '{print $2}')
+          VERSION_NAME=$(grep versionName ./app/build.gradle | awk '{print $2}')
+          echo "Version Code: $VERSION_CODE"
+          echo "Version Name: $VERSION_NAME"
+          # 可以在这里添加更多验证逻辑
+      # 11. 配置 Keystore 文件
       - name: Set up keystore file
         run: |
-          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks
+          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
         env:
-          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
 
-      # 11. 构建 Release APK
+      # 12. 构建 Release APK
       - name: Build Release APK
-        run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
-      # 7. 查找所有生成的 APK 文件
-      - name: 查找所有生成的 APK 文件
-        id: find-apks
-        run: |
-          APK_FILES=$(find "$PWD/app/build/outputs/apk/release" -name "*.apk" -type f | tr '\n' ' ')
-          echo "Found APKs: $APK_FILES"
-          if [ -z "$APK_FILES" ]; then
-            echo "未找到 APK 文件！"
-            exit 1
-          fi
-          echo "APK_FILES=$APK_FILES" >> $GITHUB_ENV
-        shell: bash
-
-      # 8. 验证并上传 APK 文件到 GitHub Release
-      - name: 上传 APK 文件到 GitHub Release
+      # 13. 使用 softprops/action-gh-release 上传 Release APK
+      - name: Upload Release APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.APK_FILES }}
+          files: app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 9. 清理构建文件
+      # 14. 清理构建文件
       - name: Clean up build files
-        run: ./gradlew clean
+        run: ./gradlew clean  # 清理构建文件，释放存储空间
