@@ -75,21 +75,20 @@ jobs:
       - name: 查找所有生成的 APK 文件
         id: find-apks
         run: |
-          APK_FILES=$(find "$PWD/app/build/outputs/apk/release" -name "*.apk" -type f)
+          APK_FILES=$(find "$PWD/app/build/outputs/apk/release" -name "*.apk" -type f | tr '\n' ' ')
           echo "Found APKs: $APK_FILES"
           if [ -z "$APK_FILES" ]; then
             echo "未找到 APK 文件！"
             exit 1
           fi
-          # 将 APK 文件路径保存在输出变量中（用换行分隔）
-          echo "apk_files=$APK_FILES" >> $GITHUB_ENV
+          echo "APK_FILES=$APK_FILES" >> $GITHUB_ENV
         shell: bash
 
       # 8. 验证并上传 APK 文件到 GitHub Release
       - name: 上传 APK 文件到 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.apk_files }}  # 从环境变量中读取路径列表
+          files: ${{ env.APK_FILES }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
