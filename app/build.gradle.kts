@@ -1,30 +1,30 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.android.application) // 应用插件
+    alias(libs.plugins.jetbrains.kotlin.android) // Kotlin 插件
 }
 
 android {
-    namespace = "com.lyy.myapp"
-    compileSdk = 35
+    namespace = "com.lyy.myapp" // 应用包名
+    compileSdk = 35 // 编译 SDK 版本
 
     defaultConfig {
-        applicationId = "com.lyy.myapp"
-        minSdk = 24
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        applicationId = "com.lyy.myapp" // 应用 ID
+        minSdk = 24 // 最低支持 SDK 版本
+        targetSdk = 35 // 目标 SDK 版本
+        versionCode = 1 // 版本号
+        versionName = "1.0.0" // 版本名称
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" // 测试运行器
         vectorDrawables {
-            useSupportLibrary = true
+            useSupportLibrary = true // 使用支持库处理矢量图标
         }
         ndk {
             abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")) // 支持的架构列表
         }
     }
-    // GitHub 自动打包
+
+    // 签名配置（用于发布版本）
     signingConfigs {
-        // 使用 GitHub Secrets 传递签名信息
         create("release") {
             storeFile = file(project.findProperty("KEYSTORE_FILE") ?: "/default/path/to/keystore.jks")
             storePassword = project.findProperty("KEYSTORE_PASSWORD") as String? ?: ""
@@ -35,49 +35,58 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = true // 启用代码压缩
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), // 默认混淆规则
+                "proguard-rules.pro" // 自定义混淆规则
             )
             signingConfig = signingConfigs.getByName("release") // 启用签名配置
         }
     }
 
+    // ABI 分包配置
     splits {
         abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-            isUniversalApk = true
+            isEnable = true // 启用 ABI 分包
+            reset() // 重置默认设置
+            include("arm64-v8a", "armeabi-v7a", "x86", "x86_64") // 指定支持的架构
+            isUniversalApk = true // 生成通用 APK
         }
     }
 
+    // 编译选项
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11 // 源代码兼容性
+        targetCompatibility = JavaVersion.VERSION_11 // 目标代码兼容性
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "11" // Kotlin JVM 目标版本
     }
+
+    // 启用 Jetpack Compose
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+        kotlinCompilerExtensionVersion = "1.5.15" // Compose 编译器扩展版本
     }
+
+    // 资源打包配置
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/{AL2.0,LGPL2.1}" // 排除不必要的资源
         }
     }
 }
 
 dependencies {
+    // 基础依赖
     implementation(libs.okhttp)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -86,20 +95,22 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.androidx.ui.test.manifest)
     implementation(libs.accompanist.navigation.animation)
 
-    // 单元测试 (JUnit 5)
-    androidTestImplementation(libs.junit.jupiter) // JUnit 5 API
-    testImplementation(libs.junit.jupiter) // 使用集合依赖
+    // 调试工具
+    debugImplementation(libs.androidx.ui.tooling)
 
+    // 测试依赖
+    // 单元测试
+    testImplementation(libs.junit.jupiter) // JUnit 5 API
 
     // Android 测试
+    androidTestImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    // 调试工具
-    debugImplementation(libs.androidx.ui.tooling)
+    // 测试清单
+    implementation(libs.androidx.ui.test.manifest)
 }
