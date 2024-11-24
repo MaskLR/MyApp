@@ -81,31 +81,18 @@ jobs:
             echo "未找到 APK 文件！"
             exit 1
           fi
-          # 将文件路径写入临时文件（逐行）
-          echo "$APK_FILES" | tr ' ' '\n' > apk_file_list.txt
+          # 将 APK 文件路径保存在输出变量中（用换行分隔）
+          echo "apk_files=$APK_FILES" >> $GITHUB_ENV
         shell: bash
 
-      # 8. 验证 APK 文件路径
-      - name: 验证 APK 文件路径
-        run: |
-          while IFS= read -r APK_PATH; do
-            if [ -f "$APK_PATH" ]; then
-              echo "Valid APK: $APK_PATH"
-            else
-              echo "Invalid APK Path: $APK_PATH"
-              exit 1
-            fi
-          done < apk_file_list.txt
-        shell: bash
-
-      # 9. 上传 APK 文件到 GitHub Release
+      # 8. 验证并上传 APK 文件到 GitHub Release
       - name: 上传 APK 文件到 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: apk_file_list.txt
+          files: ${{ env.apk_files }}  # 从环境变量中读取路径列表
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 10. 清理构建文件
+      # 9. 清理构建文件
       - name: Clean up build files
         run: ./gradlew clean
