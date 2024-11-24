@@ -84,20 +84,19 @@ jobs:
       - name: 查找所有生成的 APK 文件
         id: find-apks  # 设置步骤 ID，供后续步骤引用
         run: |
-          # 在构建输出目录中查找所有 .apk 文件
-          APK_FILES=$(find app/build/outputs/apk/ -name "*.apk" -type f)
+          APK_FILES=$(find . -path "*/outputs/apk/*.apk" -type f)
+          echo "Found APKs: $APK_FILES"
           if [ -z "$APK_FILES" ]; then
-            echo "未找到 APK 文件！"  # 如果未找到文件，退出并报错
+            echo "未找到 APK 文件！"
             exit 1
           fi
-          # 将找到的文件路径保存为输出变量
-          echo "::set-output name=files::$(echo $APK_FILES | tr '\n' ' ')"
+          echo "files=$(echo $APK_FILES | tr '\n' ' ')" >> $GITHUB_ENV
 
       # 13. 使用 softprops/action-gh-release 上传 Release APK 上传 APK 文件到 GitHub Release
       - name: 上传 APK 文件到 GitHub Release
         uses: softprops/action-gh-release@v2  # 使用 GitHub Actions 插件上传文件到 Release
         with:
-          files: ${{ steps.find-apks.outputs.files }}  # 引用查找到的 APK 文件路径
+          files: ${{ env.files }}  # 引用查找到的 APK 文件路径
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token 进行身份验证
 
