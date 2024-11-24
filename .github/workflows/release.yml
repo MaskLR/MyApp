@@ -3,62 +3,82 @@ name: Build and Release APK
 on:
   push:
     tags:
-      - 'v*'  # 当推送以 'v' 开头的标签时触发，例如 v1.0.0
+      - 'v*'
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用最新的 Ubuntu 虚拟机作为运行环境
-    timeout-minutes: 120  # 设置最大运行时间为 120 分钟，防止长时间占用资源
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       # 1. 检出代码
-      - name: 检出代码
-        uses: actions/checkout@v4  # 使用官方动作检出代码仓库
+      - name: Checkout code
+        uses: actions/checkout@v4  # 使用 GitHub 官方的代码检出操作
 
       # 2. 为 gradlew 文件授予执行权限
-      - name: 授予 gradlew 文件执行权限
-        run: chmod +x ./gradlew  # 确保 Gradle 构建工具脚本具有执行权限
+      - name: Grant execution permission for gradlew
+        run: chmod +x ./gradlew
 
       # 3. 设置 JDK 17 环境
-      - name: 配置 JDK 17 环境
-        uses: actions/setup-java@v4  # 配置 Java 环境
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4  # 使用 setup-java 动作
         with:
-          distribution: 'zulu'  # 使用 Azul Zulu 发行版的 OpenJDK
-          java-version: '17'  # 指定 Java 版本为 17
+          distribution: 'zulu'  # 使用 Zulu OpenJDK 发行版
+          java-version: '17'  # 指定 JDK 版本为 17
 
-      # 4. 配置 Android SDK
-      - name: 配置 Android SDK 环境
-        uses: android-actions/setup-android@v3  # 配置 Android 命令行工具
+      # 4. 设置 Android SDK 环境
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3  # 使用 setup-android 动作
         with:
-          cmdline-tools-version: 'latest'  # 安装最新版本的命令行工具
+          cmdline-tools-version: "latest"
+          # 设置tools版本为最新版 设置目标 Android API 级别为 最新版
 
-      # 5. 配置 Gradle 缓存
-      - name: 配置 Gradle 缓存
-        uses: actions/cache@v4  # 使用 GitHub Actions 的缓存功能加速构建
+      # 5. 配置缓存以加速 Gradle 构建
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle/caches  # Gradle 缓存目录
-            ~/.gradle/wrapper  # Gradle 包装器目录
-            ~/.android         # Android SDK 缓存目录
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # 6. 校验 Gradle 配置
-      - name: 校验 Gradle 配置
+      # 6. 校验 build.gradle.kts 文件语法
+      - name: Validate Gradle files
         run: ./gradlew help  # 检查 Gradle 配置文件是否有效
 
-      # 7. 构建 Release APK
-      - name: 构建 Release APK
+      # 7. 校验依赖是否正确解析
+      - name: Verify dependencies
+        run: ./gradlew dependencies  # 列出所有依赖项以验证解析是否正确
+
+      # 8. 运行代码静态检查
+      - name: Run Lint checks
+        run: ./gradlew lint  # 执行 Lint 检查，确保代码符合规范
+
+      # 9. 运行单元测试
+      - name: Run Unit tests
+        run: ./gradlew test  # 执行单元测试，确保代码逻辑正确
+
+      # 10. 检查版本号
+      - name: Check versionCode and versionName
         run: |
-          ./gradlew assembleRelease --parallel \
-          -PKEYSTORE_FILE=/tmp/keystore.jks \
-          -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} \
-          -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} \
-          -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+          VERSION_CODE=$(grep versionCode ./app/build.gradle | awk '{print $2}')
+          VERSION_NAME=$(grep versionName ./app/build.gradle | awk '{print $2}')
+          echo "Version Code: $VERSION_CODE"
+          echo "Version Name: $VERSION_NAME"
+          # 可以在这里添加更多验证逻辑
+      # 11. 配置 Keystore 文件
+      - name: Set up keystore file
+        run: |
+          echo "$KEYSTORE_FILE" | base64 --decode > /tmp/keystore.jks  # 解码并写入 keystore 文件
         env:
-          # 从 GitHub Secrets 中读取签名文件
-          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}  # 从 GitHub Secrets 获取 keystore 文件的 Base64 编码
+
+      # 12. 构建 Release APK
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --parallel -PKEYSTORE_FILE=/tmp/keystore.jks -PKEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} -PKEY_ALIAS=${{ secrets.KEY_ALIAS }} -PKEY_PASSWORD=${{ secrets.KEY_PASSWORD }}  # 构建 Release 版本的 APK，使用 Keystore 签名
 
       # 8. 查找所有生成的 APK 文件
       - name: 查找所有生成的 APK 文件
@@ -73,7 +93,7 @@ jobs:
           # 将找到的文件路径保存为输出变量
           echo "::set-output name=files::$(echo $APK_FILES | tr '\n' ' ')"
 
-      # 9. 上传 APK 文件到 GitHub Release
+      # 13. 使用 softprops/action-gh-release 上传 Release APK 上传 APK 文件到 GitHub Release
       - name: 上传 APK 文件到 GitHub Release
         uses: softprops/action-gh-release@v2  # 使用 GitHub Actions 插件上传文件到 Release
         with:
@@ -81,6 +101,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token 进行身份验证
 
-      # 10. 清理构建文件
-      - name: 清理构建文件
+      # 14. 清理构建文件
+      - name: Clean up build files
         run: ./gradlew clean  # 清理构建文件，释放存储空间
