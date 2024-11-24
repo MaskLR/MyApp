@@ -90,13 +90,25 @@ jobs:
             echo "未找到 APK 文件！"
             exit 1
           fi
-          echo "files=$(echo $APK_FILES | tr '\n' ' ')" >> $GITHUB_ENV
+          echo -e "files=$(echo \"$APK_FILES\")" >> $GITHUB_ENV
+
+      - name: 验证生成的 APK 文件是否存在
+        run: |
+          echo "Validating APK file paths:"
+          for FILE in ${{ env.files }}; do
+            if [ -f "$FILE" ]; then
+              echo "Found: $FILE"
+            else
+              echo "Not Found: $FILE"
+            fi
+          done
 
       # 13. 使用 softprops/action-gh-release 上传 Release APK 上传 APK 文件到 GitHub Release
       - name: 上传 APK 文件到 GitHub Release
         uses: softprops/action-gh-release@v2  # 使用 GitHub Actions 插件上传文件到 Release
         with:
-          files: ${{ env.files }}  # 引用查找到的 APK 文件路径
+          files: |
+            ${{ env.files }}  # 引用查找到的 APK 文件路径
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token 进行身份验证
 
