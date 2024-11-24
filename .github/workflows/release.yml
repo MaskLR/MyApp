@@ -96,10 +96,11 @@ jobs:
         run: |
           echo "Validating APK file paths:"
           for FILE in ${{ env.files }}; do
-            if [ -f "$FILE" ]; then
-              echo "Found: $FILE"
+            ABSOLUTE_PATH=$(realpath "$FILE")
+            if [ -f "$ABSOLUTE_PATH" ]; then
+              echo "Found: $ABSOLUTE_PATH"
             else
-              echo "Not Found: $FILE"
+              echo "Not Found: $ABSOLUTE_PATH"
             fi
           done
 
