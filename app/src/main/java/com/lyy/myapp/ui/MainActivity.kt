@@ -41,6 +41,5 @@ class MainActivity : ComponentActivity() {
     fun DefaultPreview() {
         MyAppTheme {
             // 显示 MyApp 组件的预览
-
         }
     }
