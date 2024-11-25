@@ -12,7 +12,7 @@ jobs:
 
     env:
       OUTPUT_DEBUG: app/build/outputs/apk/debug/*.apk  # Debug APK 输出路径
-      OUTPUT_RELEASE: app/build/outputs/apk/release/**/*.apk  # Release APK 输出路径（递归捕获所有变体）
+      OUTPUT_RELEASE: app/build/outputs/apk/release/*.apk  # Release APK 输出路径
 
     steps:
       # 1. 检出代码
@@ -88,32 +88,8 @@ jobs:
           path: ${{ env.OUTPUT_DEBUG }}  # Debug APK 文件路径
 
       # 15. 上传 Release APK
-      - name: Upload arm64-v8a APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
         with:
-          name: MyApp-Release-arm64-v8a-APK  # 上传的文件名称
-          path: app/build/outputs/apk/release/app-arm64-v8a-release.apk
-
-      - name: Upload armeabi-v7a APK
-        uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
-        with:
-          name: MyApp-Release-armeabi-v7a-APK  # 上传的文件名称
-          path: app/build/outputs/apk/release/app-armeabi-v7a-release.apk
-
-      - name: Upload x86 APK
-        uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
-        with:
-          name: MyApp-Release-x86-APK  # 上传的文件名称
-          path: app/build/outputs/apk/release/app-x86-release.apk
-
-      - name: Upload x86_64 APK
-        uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
-        with:
-          name: MyApp-Release-x86_64-APK  # 上传的文件名称
-          path: app/build/outputs/apk/release/app-x86_64-release.apk
-
-      - name: Upload universal APK
-        uses: actions/upload-artifact@v4  # 使用 GitHub Actions 上传构建产物
-        with:
-          name: MyApp-Release-universal-APK  # 上传的文件名称
-          path: app/build/outputs/apk/release/app-universal-release.apk
+          name: MyApp-Release-APK  # 上传的文件名称
+          path: ${{ env.OUTPUT_RELEASE }}  # Release APK 文件路径
