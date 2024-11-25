@@ -1,4 +1,4 @@
-package com.lyy.myapp.ui.screens
+package com.lyy.myapp.ui.screen
 
 import android.content.Context
 // 用到的其他 Compose 和 Android 相关组件
@@ -28,7 +28,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-
 
 // 用到的 Compose 状态管理和协程
 import androidx.compose.runtime.Composable

@@ -80,37 +80,35 @@ android {
 }
 
 dependencies {
-    // 基础依赖
-    implementation(libs.okhttp)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-
-    // Jetpack Compose
+    // 使用 Compose BOM 统一管理 Compose 相关依赖版本
     implementation(platform(libs.androidx.compose.bom))
+    // Jetpack Compose 基础依赖
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.material3)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.material3) // Material 3
+    // Material Icons 扩展支持（额外图标）
     implementation(libs.androidx.material.icons.extended)
+    // Navigation 和动画支持
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.navigation.animation)
-
+    // Activity Compose
+    implementation(libs.androidx.activity.compose)
+    // 引入 OkHttp BOM
+    implementation(platform(libs.okhttp.bom))
+    // OkHttp 核心库
+    implementation(libs.okhttp.core)
+    // OkHttp 日志拦截器（可选）
+    implementation(libs.okhttp.logging)
     // 调试工具
     debugImplementation(libs.androidx.ui.tooling)
-
     // 测试依赖
-    // 单元测试
-    testImplementation(libs.junit.jupiter) // JUnit 5 API
-
-    // Android 测试
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-
     // 测试清单
     implementation(libs.androidx.ui.test.manifest)
 }
