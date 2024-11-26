@@ -1,4 +1,4 @@
-package com.lyy.myapp.ui.screen
+package com.lyy.myapp.ui.screens
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

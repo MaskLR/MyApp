@@ -1,101 +1,104 @@
 # 项目结构
 
-## 根包
-`com.lyy.myapp`  
-项目的根包，包含所有代码。
+## `app/`
+Android 项目文件夹，包含应用的所有源代码和资源。
+
+### `build.gradle.kts`
+- 项目级 `build.gradle` 文件，包含依赖配置等。
+
+### `src/main/`
+项目的主代码目录。
+
+#### `AndroidManifest.xml`
+- 应用的 Android 清单文件，包含基本的配置信息和权限声明。
+
+#### `java/com/lyy/myapp/`
+应用的 Java/Kotlin 源代码文件夹。
+
+##### `di/`
+依赖注入模块，负责应用中依赖关系的管理。
+
+- **`AppModule.kt`**: 依赖注入模块配置文件。
+
+##### `domain/`
+领域层，包含业务逻辑和领域模型。
+
+- **`model/`**: 包含领域模型类。
+
+  - **`User.kt`**: 领域模型类，表示用户对象。
+
+  - **`UserRepository.kt`**: 定义用户相关的业务逻辑接口。
+
+##### `data/`
+数据层，包含与数据交互的逻辑，负责获取、存储数据。
+
+- **`local/`**: 本地数据源，涉及数据库操作。
+
+  - **`UserDao.kt`**: 用于用户数据的本地数据库操作（如 Room）。
+
+- **`network/`**: 网络数据源，负责 API 请求。
+
+  - **`ApiService.kt`**: 定义网络请求接口，使用 Retrofit 之类的库进行 API 调用。
+
+- **`repository/`**: 数据仓库，连接本地和远程数据源。
+
+  - **`UserRepositoryImpl.kt`**: 数据仓库的实现类，处理用户相关的数据操作。
+
+- **`remote/`**: 远程数据源，负责处理网络请求的结果。
+
+  - **`RemoteDataSource.kt`**: 远程数据源类，定义了从远程服务器获取数据的逻辑。
+
+##### `ui/`
+用户界面层，包含 UI 组件和屏幕（Screen）。
+
+- **`screens/`**: UI 屏幕文件夹，包含应用各个界面的实现。
+
+  - **`HomeScreen.kt`**: 主界面，用 Jetpack Compose 实现。
+
+  - **`LoginScreen.kt`**: 登录界面。
+
+- **`components/`**: 可复用 UI 组件。
+
+  - **`Button.kt`**: 自定义按钮组件。
+
+- **`theme/`**: 主题文件夹，定义应用的视觉样式。
+
+  - **`Color.kt`**: 自定义颜色。
+
+  - **`Shapes.kt`**: 自定义形状。
+
+  - **`Typography.kt`**: 字体样式设置。
+
+##### `viewmodel/`
+视图模型层，负责与 UI 层进行数据交互，处理业务逻辑。
+
+- **`HomeViewModel.kt`**: 主界面相关的 ViewModel。
+
+- **`LoginViewModel.kt`**: 登录界面相关的 ViewModel。
+
+##### `navigation/`
+导航层，负责应用内的页面导航。
+
+- **`NavGraph.kt`**: 定义 Jetpack Compose 导航图，管理各个屏幕之间的跳转。
+
+##### `utils/`
+工具类层，包含应用中的扩展函数和其他辅助功能。
+
+- **`Extensions.kt`**: 扩展函数，提供常用的工具方法。
+
+##### `MainActivity.kt`
+应用的入口 Activity，通常用于启动应用并加载第一个屏幕。
+
+#### `res/`
+资源文件夹，包含所有的资源文件（如布局、图像等）。
+
+- **`layout/`**: 布局文件，通常是传统的 XML 布局文件。
+
+- **`drawable/`**: 图形资源文件，如图片等。
+
+- **`values/`**: 值资源文件，如颜色、字符串、尺寸等。
 
 ---
 
-## 数据层 (`data`)
-负责数据的获取、存储及管理。
-
-### 子模块
-- **`local`**  
-  本地数据存储模块。
-
-- **`model`**  
-  数据模型模块，定义数据结构。
-
-- **`network`**  
-  网络请求模块：
-  - `ApiService.kt`：定义网络请求接口。
-  - `NetworkClient.kt`：封装网络请求客户端。
-
-- **`remote`**  
-  远程数据源模块，用于与后端交互。
-
-- **`repository`**  
-  数据仓库模块，统一处理数据源逻辑（远程和本地）。
-
----
-
-## 核心模块 (`core`)
-提供全局功能支持。
-
-### 子模块
-- **`di`**  
-  全局依赖注入模块。
-
-- **`utils`**  
-  通用工具类模块。
-
----
-
-## 业务逻辑层 (`domain`)
-专注于业务逻辑，独立于 UI。
-
-### 子模块
-- **`model`**  
-  业务层特有的数据模型，与 UI 层数据模型解耦。
-
-- **`usecase`**  
-  用例模块，包含具体的业务逻辑实现。
-
----
-
-## 导航模块 (`navigation`)
-处理页面导航逻辑。
-
-### 子模块
-- **`NavDestination.kt`**  
-  定义导航目标。
-- **`NavGraph.kt`**  
-  定义应用的导航图。
-
----
-
-## UI 层 (`ui`)
-负责用户界面的展示与交互。
-
-### 子模块
-- **`components`**  
-  通用 UI 组件模块：
-  - `BottomNavBar.kt`：底部导航栏组件。
-
-- **`screens`**  
-  独立页面模块：
-  - `HomeScreen.kt`：主页面。
-  - `DiscoverScreen.kt`：发现页面。
-  - `MeScreen.kt`：个人页面。
-
-- **`theme`**  
-  全局主题样式模块：
-  - `Color.kt`：自定义颜色。
-  - `Theme.kt`：全局主题管理。
-  - `Type.kt`：字体样式定义。
-
-- **`MainActivity.kt`**  
-  包含导航逻辑的主页面。
-
----
-
-## ViewModel 层 (`viewmodel`)
-负责将数据和逻辑绑定到 UI。
-
-### 子模块
-- **`DiscoverViewModel.kt`**  
-  发现页面的 ViewModel。
-- **`HomeViewModel.kt`**  
-  主页面的 ViewModel。
-- **`MeViewModel.kt`**  
-  个人页面的 ViewModel。
+## 根目录
+- `build.gradle.kts`: 根目录的 `build.gradle` 配置文件，包含全局配置和依赖管理。

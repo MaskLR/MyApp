@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application) // 应用插件
     alias(libs.plugins.jetbrains.kotlin.android) // Kotlin 插件
+    alias(libs.plugins.hilt.android) // 应用 Hilt 插件
+    id("kotlin-kapt") // 使用 KSP 插件，通过版本管理
 }
 
 android {
@@ -100,15 +102,34 @@ dependencies {
     implementation(libs.okhttp.core)
     // OkHttp 日志拦截器（可选）
     implementation(libs.okhttp.logging)
+    // 使用 Retrofit 相关依赖
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+
+    // 使用 Room 相关依赖
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
+
+    // 使用 Kotlin Coroutines 相关依赖
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+    // 注入工具
+    implementation(libs.hilt.android) // Hilt Android 核心库
+    kapt(libs.hilt.compiler) // Hilt 编译器
     // 调试工具
     debugImplementation(libs.androidx.ui.tooling)
     // 测试依赖
-    testImplementation(libs.junit.jupiter)
-    androidTestImplementation(libs.junit.jupiter)
-    androidTestImplementation(libs.androidx.junit)
+    testImplementation(libs.junit.jupiter)  // JUnit 5 测试依赖
+    androidTestImplementation(libs.junit.jupiter)  // JUnit 5 Android 测试依赖
+    androidTestImplementation(libs.androidx.junit) // AndroidJUnit4（用于兼容性测试）
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     // 测试清单
     implementation(libs.androidx.ui.test.manifest)
+}
+
+kapt {
+    correctErrorTypes = true
 }

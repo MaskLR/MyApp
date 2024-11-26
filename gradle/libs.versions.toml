@@ -1,44 +1,55 @@
 [versions]
 agp = "8.7.2"  # Android Gradle 插件版本
 kotlin = "1.9.25"  # Kotlin 版本
-junit = "5.11.3"  # JUnit 版本
-junitVersion = "1.2.1"  # JUnit 版本
+junit = "5.11.3"  # 统一使用 JUnit 5 版本
 activityCompose = "1.9.3"  # Activity Compose 版本
 composeBom = "2024.10.01"  # Compose BOM 版本
 navigationCompose = "2.8.3"  # Navigation Compose 版本
 accompanist = "0.36.0"  # Accompanist 版本
 okhttp = "4.12.0"  # OkHttp 版本
 espressoCore = "3.6.1"  # Espresso 版本
+hilt = "2.52" # Hilt 版本
+retrofit = "2.11.0"  # Retrofit 版本
+room = "2.6.1"      # Room 版本
+coroutines = "1.9.0" # Kotlin Coroutines 版本
 
 [libraries]
-# 使用 Compose BOM 统一管理版本
+# Compose BOM 和 UI 相关
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-# 依赖 Compose BOM 的模块，无需显式指定版本
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-# Material Design 3
+# Material Design 3 和扩展图标
 material3 = { module = "androidx.compose.material3:material3" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-# Activity Compose（不属于 Compose BOM，需要单独指定版本）
+# Activity 和 Navigation
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-# Navigation 和 Accompanist（不属于 Compose BOM，需要单独指定版本）
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanist" }
-# OkHttp BOM
+# 网络相关（OkHttp, Retrofit）
 okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp" }
-# OkHttp 核心库（版本由 BOM 管理）
 okhttp-core = { group = "com.squareup.okhttp3", name = "okhttp" }
-# 日志拦截器（版本由 BOM 管理）
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor" }
-# 测试
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+# Room 持久化
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+# Coroutines
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+# 测试相关
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-
+# Hilt 依赖
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

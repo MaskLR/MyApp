@@ -1,4 +1,4 @@
-package com.lyy.myapp.ui.screen
+package com.lyy.myapp.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

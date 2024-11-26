@@ -23,9 +23,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lyy.myapp.R
-import com.lyy.myapp.ui.screen.DiscoverScreen
-import com.lyy.myapp.ui.screen.HomeScreen
-import com.lyy.myapp.ui.screen.MeScreen
+import com.lyy.myapp.ui.screens.DiscoverScreen
+import com.lyy.myapp.ui.screens.HomeScreen
+import com.lyy.myapp.ui.screens.MeScreen
 
 /**
  * 定义应用内导航的各个路由。
