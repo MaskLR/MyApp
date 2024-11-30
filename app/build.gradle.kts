@@ -82,54 +82,53 @@ android {
 }
 
 dependencies {
-    // 使用 Compose BOM 统一管理 Compose 相关依赖版本
-    implementation(platform(libs.androidx.compose.bom))
     // Jetpack Compose 基础依赖
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
+    implementation(platform(libs.androidx.compose.bom)) // Compose BOM
+    implementation(libs.androidx.ui) // Compose UI 核心
+    implementation(libs.androidx.ui.graphics) // Compose 图形支持
+    implementation(libs.androidx.ui.tooling.preview) // 预览工具
     implementation(libs.material3) // Material 3
-    // Material Icons 扩展支持（额外图标）
-    implementation(libs.androidx.material.icons.extended)
-    // Navigation 和动画支持
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.accompanist.navigation.animation)
-    // Activity Compose
-    implementation(libs.androidx.activity.compose)
-    // 引入 OkHttp BOM
-    implementation(platform(libs.okhttp.bom))
-    // OkHttp 核心库
-    implementation(libs.okhttp.core)
-    // OkHttp 日志拦截器（可选）
-    implementation(libs.okhttp.logging)
-    // 使用 Retrofit 相关依赖
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson)
+    implementation(libs.androidx.material.icons.extended) // Material Icons 扩展
+    implementation(libs.androidx.navigation.compose) // Navigation
+    implementation(libs.accompanist.navigation.animation) // Accompanist 动画导航
+    implementation(libs.androidx.activity.compose) // Activity Compose
+    implementation(libs.androidx.datastore.preferences)    // DataStore 依赖
 
-    // 使用 Room 相关依赖
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    // 网络相关依赖
+    implementation(platform(libs.okhttp.bom)) // OkHttp BOM
+    implementation(libs.okhttp.core) // OkHttp 核心库
+    implementation(libs.okhttp.logging) // OkHttp 日志拦截器
+    implementation(libs.retrofit) // Retrofit 核心库
+    implementation(libs.retrofit.gson) // Retrofit Gson 转换器
 
-    // 使用 Kotlin Coroutines 相关依赖
-    implementation(libs.coroutines.core)
-    implementation(libs.coroutines.android)
-    // 注入工具
+    // 数据库相关依赖
+    implementation(libs.room.runtime) // Room 数据库
+    implementation(libs.room.ktx) // Room Kotlin 扩展
+    kapt(libs.room.compiler) // Room 编译器
+
+    // 协程依赖
+    implementation(libs.coroutines.core) // Kotlin Coroutines 核心
+    implementation(libs.coroutines.android) // Android 平台支持
+
+    // Hilt 依赖注入
     implementation(libs.hilt.android) // Hilt Android 核心库
     kapt(libs.hilt.compiler) // Hilt 编译器
-    // 调试工具
-    debugImplementation(libs.androidx.ui.tooling)
-    // 测试依赖
-    testImplementation(libs.junit.jupiter)  // JUnit 5 测试依赖
-    androidTestImplementation(libs.junit.jupiter)  // JUnit 5 Android 测试依赖
-    androidTestImplementation(libs.androidx.junit) // AndroidJUnit4（用于兼容性测试）
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    // 测试清单
-    implementation(libs.androidx.ui.test.manifest)
-}
+    implementation(libs.hilt.navigation.compose) // Hilt 与 Compose 集成
 
+    // 调试工具
+    debugImplementation(libs.androidx.ui.tooling) // Compose 调试工具
+
+    // 测试依赖
+    testImplementation(libs.junit.jupiter) // JUnit 5 测试
+    androidTestImplementation(libs.junit.jupiter) // JUnit 5 Android 测试
+    androidTestImplementation(libs.androidx.junit) // AndroidJUnit4 测试
+    androidTestImplementation(libs.androidx.espresso.core) // Espresso 测试
+    androidTestImplementation(platform(libs.androidx.compose.bom)) // Compose BOM 测试
+    androidTestImplementation(libs.androidx.ui.test.junit4) // Compose 测试支持
+    implementation(libs.androidx.ui.test.manifest) // 测试清单
+
+}
+// 配置 KAPT
 kapt {
     correctErrorTypes = true
 }

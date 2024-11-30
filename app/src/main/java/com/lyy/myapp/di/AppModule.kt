@@ -1,41 +1,43 @@
 package com.lyy.myapp.di
 
 import com.lyy.myapp.data.network.ApiService
+import com.lyy.myapp.data.remote.RemoteDataSource
+import com.lyy.myapp.data.repository.UserRepositoryImpl
+import com.lyy.myapp.domain.model.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class) // 全局注入
+@InstallIn(SingletonComponent::class) // 在应用程序级别安装此模块
 object AppModule {
 
+    // 提供 ApiService 的实例，Retrofit 实例化时通过此方法获取
     @Provides
+    @Singleton
     fun provideApiService(): ApiService {
         return Retrofit.Builder()
-            .baseUrl("https://your.api.url")
-            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl("http://mask.ddns.net:808/api/loginUser.php/") // 替换为后端的真实地址
+            .addConverterFactory(GsonConverterFactory.create()) // 解析 JSON 响应
             .build()
             .create(ApiService::class.java)
     }
 
-//    @Provides
-//    fun provideUserDao(context: Context): UserDao {
-//        // 假设你已经在Room数据库中定义了UserDao
-//        return Room.databaseBuilder(context, YourDatabase::class.java, "database-name")
-//            .build()
-//            .userDao()
-//    }
-//
-//    @Provides
-//    fun provideRemoteDataSource(apiService: ApiService): RemoteDataSource {
-//        return RemoteDataSource(apiService)
-//    }
-//
-//    @Provides
-//    fun provideUserRepository(userDao: UserDao, remoteDataSource: RemoteDataSource): UserRepository {
-//        return UserRepositoryImpl(userDao, remoteDataSource)
-//    }
+    // 提供 RemoteDataSource 的实例
+    @Provides
+    @Singleton
+    fun provideRemoteDataSource(apiService: ApiService): RemoteDataSource {
+        return RemoteDataSource(apiService)
+    }
+
+    // 提供 UserRepository 的实例，业务逻辑层通过此仓库获取数据
+    @Provides
+    @Singleton
+    fun provideUserRepository(remoteDataSource: RemoteDataSource): UserRepository {
+        return UserRepositoryImpl(remoteDataSource)
+    }
 }

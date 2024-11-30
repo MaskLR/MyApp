@@ -4,28 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.lyy.myapp.navigation.AppNavigation
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
+import com.lyy.myapp.navigation.NavGraph
 import com.lyy.myapp.ui.theme.MyAppTheme
+import com.lyy.myapp.viewmodel.LoginViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            //全屏显示
-            enableEdgeToEdge()
-            // 使用主题包装内容
+            enableEdgeToEdge()            //全屏显示
             MyAppTheme {
-                Surface {
-                    // 启动主应用程序
-                    AppNavigation()
-                }
+                val navController = rememberNavController()
+                val loginViewModel = hiltViewModel<LoginViewModel>()
+                NavGraph(navController, loginViewModel)
+            }
             }
         }
     }
-}
 
 @Preview(showBackground = true)
 @Composable
