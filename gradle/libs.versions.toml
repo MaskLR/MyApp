@@ -1,6 +1,6 @@
 [versions]
-agp = "8.7.2" # Android Gradle Plugin 最新稳定版本
-kotlin = "1.9.25" # Kotlin 最新稳定版本，支持 Compose
+agp = "8.7.3" # Android Gradle Plugin 最新稳定版本
+kotlin = "2.0" # Kotlin 最新稳定版本，支持 Compose
 junit = "5.11.3" # JUnit 5 版本
 androidxJunit = "1.2.1" # Androidx JUnit 扩展版本，兼容 JUnit 4
 activityCompose = "1.9.3" # Activity Compose 版本
